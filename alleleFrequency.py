@@ -1,6 +1,7 @@
 import sys
 import random
 import os
+import re
 
 ###############################################################
 ### usage Section
@@ -70,7 +71,7 @@ for line in vcfFile:
 			refAllele = line[referenceColumnNum]
 			altAllele = line[alternateColumnNum]
 
-			if altAllele in ['A','T','G','C']:
+                        if altAllele in ['A','T','G','C']:
 
 				##### If the altAllele is A or T or G or C, do the following.
 				tempDict = {}
@@ -184,76 +185,74 @@ for line in vcfFile:
 			outfile.write(resultLine + '\n')
 
 			## If the altAllele is not in A, T, G, or C, do the following
-			elif altAllele == "." :
+                        elif altAllele == ".":
 
-				## Read data to temp dict    
-				tempDict = {}
-				sampleNum = 1
-				for item in line[formatColumn+1:formatColumn+nSamples+1]:
-					tempDict[sampleNum] = item
-					sampleNum += 1
+			    ## Read data to temp dict    
+			    tempDict = {}
+			    sampleNum = 1
+			    for item in line[formatColumn+1:formatColumn+nSamples+1]:
+			        tempDict[sampleNum] = item
+				sampleNum += 1
 
-				## create genotype dict from temp Dict
-				genotypeDict={}
-				i=0
-				n=0
-				AF1 = 0
-				AF2 = 0             
-				heterozygosity = 0
+			    ## create genotype dict from temp Dict
+			    genotypeDict={}
+			    i=0
+			    n=0
+			    AF1 = 0
+			    AF2 = 0             
+			    heterozygosity = 0
 
-				## for samples 1 to 18 do the following
-				for sampleNum in tempDict:
-					if sampleNum<=18:
+			    ## for samples 1 to 18 do the following
+			    for sampleNum in tempDict:
+			        if sampleNum<=18:
+				    datum=tempDict[sampleNum]
+				    datum=datum.strip().split(':')
 
-						datum=tempDict[sampleNum]
-						datum=datum.strip().split(':')
+				    PL = datum[0]
+				    DP = datum[1]
+				    SP = datum[2]
 
-						PL = datum[0]
-						DP = datum[1]
-						SP = datum[2]
+				    ## assign genotype
+				    genotype = '--'                        
+				    genotypeDict[sampleNum] = []
+				    genotypeDict[sampleNum].append(refAllele)
 
-						## assign genotype
-						genotype = '--'                        
-						genotypeDict[sampleNum] = []
-						genotypeDict[sampleNum].append(refAllele)
+				    isBadCall=1
+				    genotypeDict[sampleNum].append(isBadCall)
 
-						isBadCall=1
-						genotypeDict[sampleNum].append(isBadCall)
+				    isBadCall = genotypeDict[sampleNum][1]
+				    genotype = genotypeDict[sampleNum][0]
 
-						isBadCall = genotypeDict[sampleNum][1]
-						genotype = genotypeDict[sampleNum][0]
-
-						resultLine += '\t' + genotype
-						resultLine += '\t' + str(isBadCall)
+				    resultLine += '\t' + genotype
+				    resultLine += '\t' + str(isBadCall)
 
 				## Append the summary of the first 18 samples        
 				resultLine += '\t' + str(i) + '\t' + str(n) + '\t' + str(AF1) + '\t' + str(heterozygosity)
 
 				## For samples 19 to 86 , do the following
 				for sampleNum in tempDict:
-					if sampleNum>18 and sampleNum<=36:
+				    if sampleNum>18 and sampleNum<=36:
+                                        datum=tempDict[sampleNum]
+					datum=datum.strip().split(':')
 
-						datum=tempDict[sampleNum]
-						datum=datum.strip().split(':')
+					PL = datum[0]
+					DP = datum[1]
+					SP = datum[2]
 
-						PL = datum[0]
-						DP = datum[1]
-						SP = datum[2]
+					## assign genotype
+					genotype = '--'
 
-						## assign genotype
-						genotype = '--'
+					genotypeDict[sampleNum] = []
+					genotypeDict[sampleNum].append(refAllele)
 
-						genotypeDict[sampleNum] = []
-						genotypeDict[sampleNum].append(refAllele)
-
-						isBadCall=1
-						genotypeDict[sampleNum].append(isBadCall)
+					isBadCall=1
+					genotypeDict[sampleNum].append(isBadCall)
 						
-						isBadCall = genotypeDict[sampleNum][1]
-						genotype = genotypeDict[sampleNum][0]
+					isBadCall = genotypeDict[sampleNum][1]
+					genotype = genotypeDict[sampleNum][0]
 
-						resultLine += '\t' + genotype
-						resultLine += '\t' + str(isBadCall)
+					resultLine += '\t' + genotype
+					resultLine += '\t' + str(isBadCall)
 
 				### write the summary of 19 to 36 samples            
 				resultLine += '\t' + str(i) + '\t' + str(n) + '\t'+ str(AF2) + '\t' + str(heterozygosity)
